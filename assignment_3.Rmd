@@ -157,8 +157,21 @@ print(stress_shift_byword_all)
 
 + Task A.
 ```{r compute_difference_in_proportion}
-test_statistic <- difference_in_proportion(stressshift::stress_shift_unamb, stressshift::stress_shift_unamb$Syllable, stressshift::stress_shift_unamb$Category, "Noun", "Verb", "Syllable 1")
+test_statistic <- difference_in_proportion(stressshift::stress_shift_unamb, "Syllable", "Category", "Noun", "Verb", "Syllable 1")
 
 print(test_statistic)
 ```
 
+
++ Task B.
+
+```{r}
+if(!exists(".Random.seed")) set.seed(NULL)
+previous_seed <- .Random.seed
+set.seed(1)
+ptest_stress <- permutation_twogroups(stressshift::stress_shift_unamb,"Syllable", "Category",
+                                      "Noun", "Verb",difference_in_proportion,n_samples=99,"Syllable 1")
+set.seed(previous_seed)
+permutation_pvalue_right(ptest_stress)
+print(ptest_stress)
+```
