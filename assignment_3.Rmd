@@ -114,8 +114,14 @@ ggplot2::aes(x=Category, fill=Syllable) %>%
 
 stress_shift_byword <- stress_shift_wide %>%
   dplyr::group_by(Word) %>%
-  dplyr::summarize(Noun_Percent_Syll_1=nrow(dplyr::filter(stress_shift_wide, Syllable_Noun == "Syllable 1"))/nrow(.))
+  dplyr::summarize(Noun_Percent_Syll_1=sum(Syllable_Noun=="Syllable 1")/n(), Verb_Percent_Syll_1=sum(Syllable_Verb=="Syllable 1")/n())
 print(stress_shift_byword)
+
+if(nrow(stress_shift_byword)==149) {
+      print("Il y a bien 149 lignes")
+    } else {
+      print("Problème : il n'y a pas 149 lignes")
+    }
 ```
 
 Now, starting with stress_shift_wide , use dplyr::group_by and dplyr::summarize to create a table with
