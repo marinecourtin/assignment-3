@@ -4,4 +4,124 @@ author: "Marine Courtin"
 date: "17 novembre 2017"
 output: html_document
 ---
+```{r, echo=FALSE}
+`%>%` <- magrittr::`%>%`
+```
 
+
+### Exercise 1: Simple data manipulation with dplyr
+
++ Task A.
+
+```{r}
+stress_shift_3dict <- dplyr::filter(stressshift::stress_shift_unamb, Dict == "W1802" | Dict == "J1917" | Dict =="C1687")
+print(nrow(stress_shift_3dict))
+```
+
+Logical operators :
+
++ or : `|`
++ and :`&`
+
++ Task B.
+
+3 ways to use packages :
+
++ attach it by using the `library(dplyr)` command, later on we can simply use `filter` instead of `dplyr::filter`.
++ using the full name `dplyr::filter` every time. For some commands this might lead to some mistakes (more details later on).
++ add a code chunk at the top of the .Rmd file with only `%>% <- magrittr::%>%`. This imports a *forward-pipe operator* from the magrittr package. What is a forward-pipe operator you may ask ? It is an operator which allows us to propagate the result of applying a function to a variable, as the argument of the next function. Adding an example without the  syntax might help :
+
+` double(4) forward-pipe triple()` -> the first operation returns 8, which in turns becomes the argument for the second function, which returns 24.
+
+
+```{r}
+stress_shift_3dict_using_pipe <- stressshift::stress_shift_unamb %>% subset(Dict == "W1802" | Dict == "J1917" | Dict =="C1687")
+identical(stress_shift_3dict, stress_shift_3dict_using_pipe)
+```
+
++ Task C.
+
+```{r}
+stress_shift_3dict_nouns <- stress_shift_3dict_using_pipe %>% dplyr::filter(Category=="Noun")
+stress_shift_3dict_verbs <- stress_shift_3dict_using_pipe %>% dplyr::filter(Category=="Verb")
+# Binding the two tables
+stress_shift_3dict_using_bind <- stress_shift_3dict_nouns %>% dplyr::bind_rows(stress_shift_3dict_verbs)
+# Change the order or arguments
+stress_shift_3dict_using_bind_reversed <- stress_shift_3dict_verbs %>% dplyr::bind_rows(stress_shift_3dict_nouns)
+# Testing if tables are identical
+print(stress_shift_3dict %>% identical(stress_shift_3dict_using_bind))
+print(stress_shift_3dict %>% identical(stress_shift_3dict_using_bind_reversed))
+```
+
+The differences between the two tables means that in one table rows where the Category is "Noun" will appear before rows where the Category is "Verb", while it is the opposite in the other one. Normally, if we use a function to randomize our draws from the table, this shouldn't matter. However, if we use set.seed() if think it could matter since we'll expect to get the same "random" draws every time, which we won't if we are using both tables at the same time. Therefore it would probably be best to use one of the tables consistently. 
+
++ Task D
+
+```{r}
+stress_shift_nouns_renamed <- stressshift::stress_shift_unamb %>%
+  dplyr::filter(Category == "Noun") %>%
+  dplyr::select(Word, Dict, Syllable) %>%
+  dplyr::rename(Syllable_Noun = Syllable)
+print(nrow(stress_shift_nouns_renamed))
+stress_shift_verbs_renamed <- stressshift::stress_shift_unamb %>%
+  dplyr::filter(Category == "Verb") %>%
+  dplyr::select(Word, Dict, Syllable) %>%
+  dplyr::rename(Syllable_Verb = Syllable)
+print(nrow(stress_shift_verbs_renamed))
+stress_shift_wide <- stress_shift_nouns_renamed %>% dplyr::inner_join(stress_shift_verbs_renamed)
+```
+
+The function dplyr::inner_join is used to find rows where the values present in table 1 and table 2 match. Whenever such as row is found, additional columns which are found only in one of the two tables are added. Here's an example :
+
+Table 1:
+
+Fruit | Prototypical_color | Season
+------------ | -------------| -------------
+Apple | red | summer
+Orange | orange | spring
+
+Table 2 :
+
+Fruit | Size | Season
+------------ | -------------| -------------
+Apple | medium | autumn
+Orange | medium | spring
+Blueberry | small | summer
+
+Will result in Table 3 :
+
+Fruit | Prototypical_color | Size | Season
+------------ | -------------| -------------| -------------|
+Orange | orange | medium | spring
+
+Our resulting table therefore has fewer rows because not all rows have matching values in both tables (Blueberry does not exist in table 1, Apple has contradictory values in table 1 and 2). The same applies for our stress_shift_wide table. Rows with matching values for the columns present in both tables are selected, and the columns present in only table 1 (Syllable_Noun) and in table 2 (Syllable_Verb) are added as well. This means that we are going to be able to compare stressed syllables for both noun and verb which share otherwise the same informations. 
+
++ Task E.
+
+
+```{r}
+ggplot2::aes(x=Category, fill=Syllable) %>%
+  ggplot2::ggplot(stressshift::stress_shift_unamb,.) +
+  ggplot2::geom_bar(position="dodge", colour="black") + 
+  ggplot2::scale_fill_brewer(palette="Set3")
+
+```
+
++ Task F.
+
+```{r}
+
+
+stress_shift_byword <- stress_shift_wide %>%
+  dplyr::group_by(Word) %>%
+  dplyr::summarize(Noun_Percent_Syll_1=nrow(dplyr::filter(stress_shift_wide, Syllable_Noun == "Syllable 1"))/nrow(.))
+print(stress_shift_byword)
+```
+
+Now, starting with stress_shift_wide , use dplyr::group_by and dplyr::summarize to create a table with
+three columns: Word , Noun_Percent_Syll_1 , and Verb_Percent_Syll_1 . There should be one row per word
+(that is, the orthographic form “abstract”, for example, should only appear in the first column once). The second
+and third columns should give the percentage of the rows in stress_shift_wide with Syllable_Noun equal to
+"Syllable 1" for the given word (that is, the word appearing in the Word column), and the percentage of rows in
+stress_shift_wide with Syllable_Verb equal to "Syllable 1" for the given word, respectively. Call the resulting
+table stress_shift_byword . It should have 149 rows. Add a line to your chunk that verifies this.
