@@ -194,7 +194,7 @@ permuted %>%
 
 + Task A.
 
-```{r}
+```{r build_data_frame_with_rbinom}
 proportion_n_syll_1 <- stressshift::stress_shift_unamb %>%
   dplyr::filter(.,Category=="Noun" & Syllable =="Syllable 1") %>%
   nrow(.) / nrow(dplyr::filter(stressshift::stress_shift_unamb, Category=="Noun"))
@@ -213,34 +213,40 @@ stress_shift_replications <- data.frame(
   "Noun_Percent_Syll_1" = Noun_N_Syll_1,
   "Verb_Percent_Syll_1" = Verb_N_Syll_1,
   "Replication" = paste0("R", sprintf("%04d", 1:1000)),
-  "Difference_in_Proportion" = Noun_N_Syll_1 - Verb_N_Syll_1
+  "Difference_in_Proportion" = Noun_N_Syll_1/6506 - Verb_N_Syll_1/6732
 )
 
-print(stress_shift_replications[["Difference_in_Proportion"]])
-
-print(stress_shift_replications)
 ```
 
-Calculate the overall proportion of “Syllable 1” for the nouns in stressshift::stress_shift_unamb , and, separately,
-for the verbs. (It is possible to do this using dplyr::summarize , but you don’t have to.) Using rbinom , simulate 1000
-new studies: for the nouns, simulate 1000 observations from a binomial distribution with prob equal to the observed
-relative frequency of “Syllable 1” among the nouns in the data set, with the number of trials equal to the number of noun
-observations in the data set (which, as you can verify, was 6506); similarly, for the verbs, simulate 1000 observations with
-prob equal to the observed relative frequency of “Syllable 1” among the verbs in the data set, with the number of trials
-equal to the number of noun observations in the data set (which, as you can verify, was 6732). Store the two vectors as
-columns, Noun_N_Syll_1 and Verb_N_Syll_1 , of a new table called stress_shift_replications . Add columns
-Noun_Percent_Syll_1 and Verb_Percent_Syll_1 with the appropriate relative frequencies for each replication. And
-add a column Replication containing "R0001" , "R0002" , ..., as unique identifiers for each replication, which you can
-generate using the following code:
-paste0("R", sprintf("%04d", 1:1000))
-Finally, add a column called Difference_in_Proportion giving the value of the test statistic from before. You don’t
-need to try to use your existing function. (That would be hard and pointless.) You just need to calculate the difference in
-the two proportions, noun minus verb.
-Make a histogram for this new distribution of test statistics, again with a vertical line at the observed value in the original
-data, plotting again with a bin width of 0.005—but change the x limits of the graph by adding the following to the plot
-object:
-ggplot2::xlim(c(-0.1, 0.8))
-Now re-plot your test statistic distribution obtained using the permutation test, immediately below this new plot, with the
-same x limits.
+```{r plot_data_test_statistics_with_rbinom}
+permuted <- tibble::as_tibble(stress_shift_replications["Difference_in_Proportion"])
+# original ne change pas
+permuted %>%
+  # what par of the data do we want to plot
+  ggplot2::ggplot(.,ggplot2::aes(x=., y=(..count..))) +
+  # how is the histogram going to look like
+  ggplot2::geom_histogram(colour="black", fill="#FFCC66", binwidth = 0.005) +
+  # adding the observed measure (unfortunately this messes up the binwidth)
+  ggplot2::geom_vline(ggplot2::aes(xintercept=original),colour="black") + 
+  ggplot2::xlim(c(-0.1, 0.8))
+
+# The original one
+permuted <- tibble::as_tibble(ptest_stress["permuted"])
+permuted %>%
+  # what par of the data do we want to plot
+  ggplot2::ggplot(.,ggplot2::aes(x=., y=(..count..))) +
+  # how is the histogram going to look like
+  ggplot2::geom_histogram(colour="black", fill="#FFCC66", binwidth = 0.005) +
+  # adding the observed measure (unfortunately this messes up the binwidth)
+  ggplot2::geom_vline(ggplot2::aes(xintercept=original),colour="black") +
+  ggplot2::xlim(c(-0.1, 0.8))
+```
+
+
+# TO ADD :
+
 Explain what these two histograms are showing. Relate the location of the vertical line to the result on page 57 of the Good
 textbook about the expected value of a binomial distribution.
+
++ Task B.
+
