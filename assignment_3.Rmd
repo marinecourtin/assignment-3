@@ -4,8 +4,13 @@ author: "Marine Courtin"
 date: "17 novembre 2017"
 output: html_document
 ---
-```{r, echo=FALSE}
+```{r import_pipe_operator, echo=FALSE}
 `%>%` <- magrittr::`%>%`
+```
+
+
+```{r load_func}
+source("functions.R")
 ```
 
 
@@ -13,7 +18,7 @@ output: html_document
 
 + Task A.
 
-```{r}
+```{r filter_table_on_dico}
 stress_shift_3dict <- dplyr::filter(stressshift::stress_shift_unamb, Dict == "W1802" | Dict == "J1917" | Dict =="C1687")
 print(nrow(stress_shift_3dict))
 ```
@@ -27,21 +32,21 @@ Logical operators :
 
 3 ways to use packages :
 
-+ attach it by using the `library(dplyr)` command, later on we can simply use `filter` instead of `dplyr::filter`.
-+ using the full name `dplyr::filter` every time. For some commands this might lead to some mistakes (more details later on).
-+ add a code chunk at the top of the .Rmd file with only `%>% <- magrittr::%>%`. This imports a *forward-pipe operator* from the magrittr package. What is a forward-pipe operator you may ask ? It is an operator which allows us to propagate the result of applying a function to a variable, as the argument of the next function. Adding an example without the  syntax might help :
++ attach it by using the `library(dplyr)` command, later on we can simply use `filter` instead of `dplyr::filter`.The problem is that there is another function filter in the stats package which is attached by default. If we attach dplyr, we risk using the dplyr::filter function instead of the stats::filter function (or we could reattach stats, and forget that we need to reuse dplyr::filter afterwards). These types of problems caused by not explicity mentionning the namespace seem pretty frequent (and it makes it hard to find the source of the problem, even when we do notice a problem).
++ using the full name `dplyr::filter` every time (no risk of mixing up functions which share the same name but a different namespace. 
++ Create a shorthand for a namespace::function. This is what we did by adding the code chunk with `%>% <- magrittr::%>%`. This imports the *forward-pipe operator* from the magrittr package. What is a forward-pipe operator you may ask ? It is an operator which allows us to propagate the result of applying a function to a variable, as the argument of the next function. Adding an example with a simpler (non-R) syntax might help :
 
 ` double(4) forward-pipe triple()` -> the first operation returns 8, which in turns becomes the argument for the second function, which returns 24.
 
 
-```{r}
+```{r first_steps_with_pipe}
 stress_shift_3dict_using_pipe <- stressshift::stress_shift_unamb %>% subset(Dict == "W1802" | Dict == "J1917" | Dict =="C1687")
 identical(stress_shift_3dict, stress_shift_3dict_using_pipe)
 ```
 
 + Task C.
 
-```{r}
+```{r filter_and_bind_tables}
 stress_shift_3dict_nouns <- stress_shift_3dict_using_pipe %>% dplyr::filter(Category=="Noun")
 stress_shift_3dict_verbs <- stress_shift_3dict_using_pipe %>% dplyr::filter(Category=="Verb")
 # Binding the two tables
@@ -57,7 +62,7 @@ The differences between the two tables means that in one table rows where the Ca
 
 + Task D
 
-```{r}
+```{r transform_sub_tables_join}
 stress_shift_nouns_renamed <- stressshift::stress_shift_unamb %>%
   dplyr::filter(Category == "Noun") %>%
   dplyr::select(Word, Dict, Syllable) %>%
@@ -99,7 +104,7 @@ Our resulting table therefore has fewer rows because not all rows have matching 
 + Task E.
 
 
-```{r}
+```{r plot_noun_verb_stress_distrib}
 ggplot2::aes(x=Category, fill=Syllable) %>%
   ggplot2::ggplot(stressshift::stress_shift_unamb,.) +
   ggplot2::geom_bar(position="dodge", colour="black") + 
@@ -109,7 +114,7 @@ ggplot2::aes(x=Category, fill=Syllable) %>%
 
 + Task F.
 
-```{r}
+```{r summarize_incomplete_table}
 
 
 stress_shift_byword <- stress_shift_wide %>%
@@ -127,7 +132,7 @@ if(nrow(stress_shift_byword)==149) {
 
 + Task G.
 
-```{r}
+```{r plot_incomplete_table_}
 stress_shift_byword %>% 
   ggplot2::ggplot(ggplot2::aes(Noun_Percent_Syll_1, Verb_Percent_Syll_1)) +
   ggplot2::geom_point(alpha = 0.5) +
@@ -137,12 +142,23 @@ stress_shift_byword %>%
 
 + Task H.
 
-```{r}
+```{r summarize_full_table}
 stress_shift_byword_all <- stressshift::stress_shift_unamb %>%
   dplyr::filter(Category == "Verb"|Category =="Noun") %>%
   dplyr::select(Word, Dict, Syllable, Category) %>%
   dplyr::group_by(Word) %>%
   dplyr::summarize(Noun_Percent_Syll_1=sum(Syllable=="Syllable 1" & Category=="Noun")/sum(Syllable=="Syllable 1"|Syllable=="Syllable 2" & Category=="Noun"), Verb_Percent_Syll_1=sum(Syllable=="Syllable 1" & Category=="Verb")/sum(Syllable=="Syllable 1"|Syllable=="Syllable 2" & Category=="Verb"))
 print(stress_shift_byword_all)
+```
+
+
+### Exercise 2 : A permutation test for categorical data
+
+
++ Task A.
+```{r compute_difference_in_proportion}
+test_statistic <- difference_in_proportion(stressshift::stress_shift_unamb, stressshift::stress_shift_unamb$Syllable, stressshift::stress_shift_unamb$Category, "Noun", "Verb", "Syllable 1")
+
+print(test_statistic)
 ```
 
