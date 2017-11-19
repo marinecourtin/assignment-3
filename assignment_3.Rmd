@@ -137,14 +137,12 @@ stress_shift_byword %>%
 
 + Task H.
 
-Return to your answer from Task D about why stress_shift_wide has fewer rows than either stress_shift_nouns_renamed
-or stress_shift_verbs_renamed . Certain dictionary entries are missing from stress_shift_wide , as you dis-
-cussed in your answer.
-Starting from stressshift::stress_shift_unamb , use dplyr to create a new table called stress_shift_byword_all
-with the same structure as stress_shift_byword , but which does not omit these entries. It should have 149 rows,
-one word per row, a column called Noun_Percent_Syll_1 containing the proportion of entries with the stress marked
-on the first syllable when the word is a noun, and a column called Verb_Percent_Syll_1 containing the proportion
-of entries with the stress marked on the first syllable when the word is a verb. But the cases that were missing from
-stress_shift_wide should now be included when calculating this proportion.
-You should see that the value of Noun_Percent_Syll_1 for “addict”, which was given as 0.89473684 [= 17/19 ] in
-the table stress_shift_byword , changes to 0.90000000 [= 18/20 ] in the new table.
+```{r}
+stress_shift_byword_all <- stressshift::stress_shift_unamb %>%
+  dplyr::filter(Category == "Verb"|Category =="Noun") %>%
+  dplyr::select(Word, Dict, Syllable, Category) %>%
+  dplyr::group_by(Word) %>%
+  dplyr::summarize(Noun_Percent_Syll_1=sum(Syllable=="Syllable 1" & Category=="Noun")/sum(Syllable=="Syllable 1"|Syllable=="Syllable 2" & Category=="Noun"), Verb_Percent_Syll_1=sum(Syllable=="Syllable 1" & Category=="Verb")/sum(Syllable=="Syllable 1"|Syllable=="Syllable 2" & Category=="Verb"))
+print(stress_shift_byword_all)
+```
+
