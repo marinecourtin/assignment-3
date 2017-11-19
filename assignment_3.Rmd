@@ -165,7 +165,7 @@ print(test_statistic)
 
 + Task B.
 
-```{r}
+```{r permutation_test}
 if(!exists(".Random.seed")) set.seed(NULL)
 previous_seed <- .Random.seed
 set.seed(1)
@@ -173,5 +173,18 @@ ptest_stress <- permutation_twogroups(stressshift::stress_shift_unamb,"Syllable"
                                       "Noun", "Verb",difference_in_proportion,n_samples=99,"Syllable 1")
 set.seed(previous_seed)
 permutation_pvalue_right(ptest_stress)
-print(ptest_stress)
 ```
+
+```{r plotting_permutation_tests}
+permuted <- tibble::as_tibble(ptest_stress["permuted"])
+original <- tibble::as_tibble(ptest_stress["observed"])
+permuted %>%
+  # what par of the data do we want to plot
+  ggplot2::ggplot(.,ggplot2::aes(x=., y=(..count..))) +
+  # how is the histogram going to look like
+  ggplot2::geom_histogram(colour="black", fill="#FFCC66", binwidth = 0.005) +
+  # adding the observed measure (unfortunately this messes up the binwidth)
+  ggplot2::geom_vline(ggplot2::aes(xintercept=original),colour="black")
+```
+
+
