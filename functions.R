@@ -100,4 +100,55 @@ permutation_twogroups <- function(d, var, grouping_var, group1, group2, statisti
 }
 
 
+# Perform a permutation test for two implicit groups of binary trials summarized
+# by the number of "successes" and trials for each of the two groups, using the
+# difference in the proportion of successes (group 1 minus group 2) as a test
+# statistic.
+#
+# ARGUMENTS:
+# k1: the number of "successes" (i.e., observations of one of the two types) in group 1
+# k2: the number of "successes" in group 2
+# n1: the total number of trials in group 1
+# n2: the total number of trials in group 2
+# n_samples: the number of permutations (defaults to 9999)
+#
+# RETURN VALUE:
+# 
+# A list containing two elements:
+#
+#  - observed: the value of statistic() in d
+#  - permuted: a vector containing the values of statistic() under n_samples
+#              permutations
+#
+permtest_difference_in_props <- function(k1, k2, n1, n2, n_samples=9999) {
+  # Create a set of observations with exactly k1 and k2 successes
+  obs_1 <- c(rep(TRUE, k1), rep(FALSE, n1 - k1)) # Individual observations from group 1
+  obs_2 <- c(rep(TRUE, k2), rep(FALSE, n2 - k2)) # Individual observations from group 2
+  observations <- c(obs_1, obs_2)
+  
+  # Permute this set of observations n_samples times, saving the result in a
+  # matrix
+  rep_observations <- matrix(rep(observations, n_samples), n1 + n2)
+  perm_observations <- apply(rep_observations, 2, sample, n1 + n2)
+  
+  # Generate the proportions in the two groups amongst the permuted observations.
+  # Tricks: mean() of a TRUE/FALSE variable is the proportion "TRUE";
+  # instead of having explicit "Group" labels that we hold fixed, we just hold fixed
+  # that the first n1 rows are "Group 1" and the remaining n2 rows are "Group 2",
+  # which amounts to the same thing, and we generate the two percentages directly.
+  props_group1 <- colMeans(perm_observations[1:n1,])
+  props_group2 <- colMeans(perm_observations[(n1+1):(n1+n2),])
+  
+  test_stats <- props_group1 - props_group2
+  return(list(observed=((k1/n1) - (k2/n2)), permuted=test_stats))
+}
+
+v_pdp_pvalue_right <- function(k1_vec, k2_vec, n1, n2, n_samples=9999) {
+  result <- rep(NA, length(k1_vec))
+  for (i in 1:length(k1_vec)) {
+    result[i] <- permtest_difference_in_props(k1_vec[i], k2_vec[i], n1, n2, n_samples=9999)
+  }
+  return(result)
+}
+
 

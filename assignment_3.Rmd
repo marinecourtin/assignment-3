@@ -204,8 +204,11 @@ proportion_v_syll_1 <- stressshift::stress_shift_unamb %>%
   dplyr::filter(.,Category=="Verb" & Syllable =="Syllable 1") %>%
   nrow(.) / nrow(dplyr::filter(stressshift::stress_shift_unamb, Category=="Verb"))
 
-Noun_N_Syll_1 <- rbinom(1000, prob=proportion_n_syll_1, size=nrow(dplyr::filter(stressshift::stress_shift_unamb, Category=="Noun")))
-Verb_N_Syll_1 <- rbinom(1000, prob=proportion_v_syll_1, size=nrow(dplyr::filter(stressshift::stress_shift_unamb, Category=="Verb")))
+nb_n_observations <- nrow(dplyr::filter(stressshift::stress_shift_unamb, Category=="Noun"))
+nb_v_observations <- nrow(dplyr::filter(stressshift::stress_shift_unamb, Category=="Verb"))
+
+Noun_N_Syll_1 <- rbinom(1000, prob=proportion_n_syll_1, size=nb_n_observations)
+Verb_N_Syll_1 <- rbinom(1000, prob=proportion_v_syll_1, size=nb_v_observations)
 
 
 
@@ -225,7 +228,7 @@ permuted %>%
   # what par of the data do we want to plot
   ggplot2::ggplot(.,ggplot2::aes(x=., y=(..count..))) +
   # how is the histogram going to look like
-  ggplot2::geom_histogram(colour="black", fill="#FFCC66", binwidth = 0.005) +
+  ggplot2::geom_histogram(colour="black", fill="#FFCC66", binwidth = 0.25) +
   # adding the observed measure (unfortunately this messes up the binwidth)
   ggplot2::geom_vline(ggplot2::aes(xintercept=original),colour="black") + 
   ggplot2::xlim(c(-0.1, 0.8))
@@ -243,10 +246,26 @@ permuted %>%
 ```
 
 
-# TO ADD :
+For the 1st histogram, we looked at the proportion of 1st syllable stressed nouns and verbs. Based on these proportions, we created binomial distributions for both noun and verbs. Each of these distribution is based on 1000 observations, with each observation having a number of trials equal to the number of nouns/verbs in the original data. We then computed the difference in proportions for each of these observations and plotted the result. These results are the compared to the result observed in our original data (the black line).
 
-Explain what these two histograms are showing. Relate the location of the vertical line to the result on page 57 of the Good
-textbook about the expected value of a binomial distribution.
+The 2nd histogram plots the distribution obtained by measuring the differences in proportion of nouns vs verbs with 1st syllable stress, obtained by creating 99 permutation tests. These results obtained by permutation (i.e a test which creates two groups of observations which share the same source of variability, which represents the hypothesis of same distribution) are compared to the observed result (the black line).
+
+We can see that our observed result seems to occur arround the middle of the distribution generated from the differences in proportions of 1st stress syllable between the noun and verb population created with a binomial distribution. This corresponds to the *expected value* EX(X). Our binomial variable X represents the number of times the difference in proportion takes a value x in the interval [0:200] (X=0 if the difference in proportion z respects : 0≤z<0.005, X=1 if the difference in proportion z respects : 0.005≤z<0.01 etc...). Our observed result might therefore indicate that our original noun data and verb data respected binomial distributions (with the number of 1st syllable stress for each population a consequence of this distribution, and our difference in proportions a difference between the expected values for noun and verbs)
+
 
 + Task B.
 
+
++ Task C.
+
+Re-do this power analysis under six conditions:
+• with one tenth the number of observations in each group (651 noun and 673 verb observations)
+• with the same overall number of observations, but with one tenth as many observations for verbs as for nouns (12034
+noun and 1204 verb observations)
+• with a total of only 33 observations (16 noun observations and 17 verb observations)
+• with a total of 33 observations, but with one tenth as many observations for verbs as for nouns (30 noun observations
+and 3 verb observations)
+• with one tenth the number of observations, and a probability of “Syllable 1” of 0.52 for nouns and 0.48 for verbs
+• with the same original numbers of observations, and new underlying distributions in the two groups: a probability
+of “Syllable 1” of 0.52 for nouns and 0.48 for verbs
+Give the estimated statistical power at the 0.05 level under each of these conditions. Discuss the results.
