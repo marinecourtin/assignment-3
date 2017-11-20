@@ -99,7 +99,6 @@ permutation_twogroups <- function(d, var, grouping_var, group1, group2, statisti
   return(result)
 }
 
-
 # Perform a permutation test for two implicit groups of binary trials summarized
 # by the number of "successes" and trials for each of the two groups, using the
 # difference in the proportion of successes (group 1 minus group 2) as a test
@@ -146,9 +145,10 @@ permtest_difference_in_props <- function(k1, k2, n1, n2, n_samples=9999) {
 v_pdp_pvalue_right <- function(k1_vec, k2_vec, n1, n2, n_samples=9999) {
   result <- rep(NA, length(k1_vec))
   for (i in 1:length(k1_vec)) {
-    result[i] <- permtest_difference_in_props(k1_vec[i], k2_vec[i], n1, n2, n_samples=9999)
+    # [YOUR CODE HERE: APPLY permtest_difference_in_props WITH THE i'TH VALUES
+    #  OF k1_vec AND OF k2_vec AS THE FIRST TWO ARGUMENTS, AND STORE THE
+    #  RESULT AS THE i'TH VALUE OF result]
+    result[i] <- permtest_difference_in_props(k1_vec[i], k2_vec[i],n1, n2, n_samples=9999)
   }
   return(result)
 }
-
-
