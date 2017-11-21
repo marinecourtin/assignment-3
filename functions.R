@@ -99,6 +99,8 @@ permutation_twogroups <- function(d, var, grouping_var, group1, group2, statisti
   return(result)
 }
 
+
+
 # Perform a permutation test for two implicit groups of binary trials summarized
 # by the number of "successes" and trials for each of the two groups, using the
 # difference in the proportion of successes (group 1 minus group 2) as a test
@@ -148,7 +150,66 @@ v_pdp_pvalue_right <- function(k1_vec, k2_vec, n1, n2, n_samples=9999) {
     # [YOUR CODE HERE: APPLY permtest_difference_in_props WITH THE i'TH VALUES
     #  OF k1_vec AND OF k2_vec AS THE FIRST TWO ARGUMENTS, AND STORE THE
     #  RESULT AS THE i'TH VALUE OF result]
-    result[i] <- permtest_difference_in_props(k1_vec[i], k2_vec[i],n1, n2, n_samples=9999)
+    result[i] <- permtest_difference_in_props(k1_vec[i],k2_vec[i],n1,n2,n_samples) %>%
+      permutation_pvalue_right()
   }
   return(result)
 }
+
+
+# Pearson's cumulative test statistic
+#
+# ARGUMENTS:
+# d: a data frame or tibble
+# var: the name of a column of d, provided as a string
+# grouping_var: the name of another column of d, provided as a string
+#
+# RETURN VALUE:
+# The value of Pearson's cumulative test statistic, calculated over all possible
+# combinations of `var` and `grouping_var`
+pearson_x2_stat <- function(d, var, grouping_var) {
+  values <- unique(d[[var]])
+  groups <- unique(d[[grouping_var]])
+  result <- 0
+  for (v in values) {
+    prop_overall <- mean(d[[var]] == v)
+    for (g in groups) {
+      d_g <- dplyr::filter(d, get(grouping_var) == g)
+      prop_g <- mean(d_g[[var]] == v)
+      result <- result + ((prop_g - prop_overall)^2)*(nrow(d_g)/prop_overall)
+    }
+  }
+  return(result)
+}
+
+
+# Perform a permutation test.
+#
+# ARGUMENTS:
+# d: a data frame or tibble
+# var_to_permute: the name of the column of d to permute
+# statistic: a function yielding a test statistic, which takes a table as input
+# n_samples: the number of permutation samples to draw (default: 9999)
+# ... : further arguments that will be passed to `statistic`
+#
+# RETURN VALUE:
+# 
+# A list containing two elements:
+#
+#  - observed: the value of statistic() in d
+#  - permuted: a vector containing the values of statistic() under n_samples
+#              permutations
+#
+permutation_test <- function(d, var_to_permute, statistic, n_samples=9999, ...) {
+  observed_statistic <- statistic(d, ...)
+  permutation_statistics <- rep(0, n_samples)
+  for (i in 1:n_samples) {
+    d_perm <- randomize(d, var_to_permute)
+    permutation_statistics[i] <- statistic(d_perm, ...)
+  }
+  result <- list(observed=observed_statistic,
+                 permuted=permutation_statistics)
+  return(result)
+}
+
+
