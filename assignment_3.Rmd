@@ -268,7 +268,7 @@ I'm not sure why I only find identical right_pvalues in my table. There's 2 poss
 + it's a bug
 + i've missed something 
 
-I probably did something wrong when filling in the function, but I can't find where since we got it as a whole block and I haven't changed much of it. This will affect the result for the following chunk of code which is my attempt at measuring the statistical power of this test
+I probably did something wrong when filling in the function, but I can't find where since we got it as a whole block and I haven't changed much of it. This will affect the result for the following chunk of code which is my attempt at measuring the statistical power of this test. In order to continue my analysis, I will act as if this result was normal.
 ```{r stat_power}
 stat_power <- function(table, nsamples, seuil) {
   pvals <- table %>% dplyr::select(Permutation_Pvalue)
@@ -422,13 +422,19 @@ print(original_proba_n)
 
 ```
 
-What does this statistical power value represents : it represents the probability that our statistic test rejects the null hypothesis (hypothesis of the two groups being the same) when an alternative hypothesis (the two groups aren't the same) is true. If our pvalues were'nt in fact a bug we have a statistical power of 1 (it's probably not actually 1 but a number very close to 1) then our statistical test is really good as it manages to reject the null hypothesis in a very large majority of cases (if not all of them).
+
 
 In case 1 and 2 we kept our probabilities equal to the original ones and a number of verb and nouns which seems reasonable. These are the cases when our statistical power is the best.
 
 In case 3, we kept the same probabilities, but lowered our number of verbs and nouns a lot which diminished the statistical power of our test. In case 6 we did the opposite, we kept the original number of verbs and nouns, but changed the probabilities of syllable_1 stress (for nouns the original was around 0.49, and therefore around 0.51 for verbs, the change widened a bit the already existing gap between the two classes in terms of probability). These changes lowers the statistical power, but it was still quite good.
 
-Cases 4 and 5 are the worst. 4 has very little data and one classe is a lot more represented than the other (verbs only has 3 instances which is clearly not enough). 5 has more data, but the probability of verbs and nouns have been reversed. Contrary to 6 where the probabilities where also changed, in this case nouns were given a higher probability than verbs even though the opposite phenomenon occured in our original data. Both of these cases give negative results.
+Cases 4 and 5 are the worst. 4 has very little data and one classe is a lot more represented than the other (verbs only has 3 instances which is clearly not enough). 5 has more data, but the probability of verbs and nouns have been reversed. Contrary to 6 where the probabilities where also changed, in this case nouns were given a higher probability than verbs even though the opposite phenomenon occured in our original data. Both of these cases give negative results, which seems weird since I thought that statistical power represented a probability.
+
+Here's how I would have defined __statistical power__:
+
+The statistical power value represents represents the probability that our statistic test rejects the null hypothesis (hypothesis of the two groups being the same) when an alternative hypothesis (the two groups aren't the same) is true. If our pvalues were'nt in fact a bug we have a statistical power of 1 (it's probably not actually 1 but a number very close to 1) then our statistical test is really good as it manages to reject the null hypothesis in a very large majority of cases (if not all of them).
+
+So either my definition is wrong and statistical power is not a probability, or my results for case 4 and 5 are wrong, and the test should have returned a float between 0 and 1. 
 
 # Exercise 4: Testing the independence assumption
 
