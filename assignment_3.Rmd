@@ -14,9 +14,9 @@ source("functions.R")
 ```
 
 
-### Exercise 1: Simple data manipulation with dplyr
+## Exercise 1: Simple data manipulation with dplyr
 
-+ Task A.
+#### __Task A.__
 
 ```{r filter_table_on_dico}
 stress_shift_3dict <- dplyr::filter(stressshift::stress_shift_unamb, Dict == "W1802" | Dict == "J1917" | Dict =="C1687")
@@ -28,7 +28,7 @@ Logical operators :
 + or : `|`
 + and :`&`
 
-+ Task B.
+#### __Task B.__
 
 3 ways to use packages :
 
@@ -44,7 +44,7 @@ stress_shift_3dict_using_pipe <- stressshift::stress_shift_unamb %>% subset(Dict
 identical(stress_shift_3dict, stress_shift_3dict_using_pipe)
 ```
 
-+ Task C.
+#### __Task C.__
 
 ```{r filter_and_bind_tables}
 stress_shift_3dict_nouns <- stress_shift_3dict_using_pipe %>% dplyr::filter(Category=="Noun")
@@ -60,7 +60,7 @@ print(stress_shift_3dict %>% identical(stress_shift_3dict_using_bind_reversed))
 
 The differences between the two tables means that in one table rows where the Category is "Noun" will appear before rows where the Category is "Verb", while it is the opposite in the other one. Normally, if we use a function to randomize our draws from the table, this shouldn't matter. However, if we use set.seed() if think it could matter since we'll expect to get the same "random" draws every time, which we won't if we are using both tables at the same time. Therefore it would probably be best to use one of the tables consistently. 
 
-+ Task D
+#### __Task D.__
 
 ```{r transform_sub_tables_join}
 stress_shift_nouns_renamed <- stressshift::stress_shift_unamb %>%
@@ -101,7 +101,7 @@ Orange | orange | medium | spring
 
 Our resulting table therefore has fewer rows because not all rows have matching values in both tables (Blueberry does not exist in table 1, Apple has contradictory values in table 1 and 2). The same applies for our stress_shift_wide table. Rows with matching values for the columns present in both tables are selected, and the columns present in only table 1 (Syllable_Noun) and in table 2 (Syllable_Verb) are added as well. This means that we are going to be able to compare stressed syllables for both noun and verb which share otherwise the same informations. 
 
-+ Task E.
+#### __Task E.__
 
 
 ```{r plot_noun_verb_stress_distrib, echo=FALSE}
@@ -112,7 +112,7 @@ ggplot2::aes(x=Category, fill=Syllable) %>%
 
 ```
 
-+ Task F.
+#### __Task F.__
 
 ```{r summarize_incomplete_table}
 
@@ -130,7 +130,7 @@ if(nrow(stress_shift_byword)==149) {
 ```
 
 
-+ Task G.
+#### __Task G.__
 
 ```{r plot_incomplete_table_, echo=FALSE}
 stress_shift_byword %>% 
@@ -140,7 +140,7 @@ stress_shift_byword %>%
   ggplot2::labs(title="Freq of 1st syllable stress for verbs according to same property for its noun")
 ```
 
-+ Task H.
+#### __Task H.__
 
 ```{r summarize_full_table}
 stress_shift_byword_all <- stressshift::stress_shift_unamb %>%
@@ -152,10 +152,11 @@ print(stress_shift_byword_all)
 ```
 
 
-### Exercise 2 : A permutation test for categorical data
+## Exercise 2 : A permutation test for categorical data
 
 
-+ Task A.
+#### __Task A.__
+
 ```{r compute_difference_in_proportion}
 test_statistic <- difference_in_proportion(stressshift::stress_shift_unamb, "Syllable", "Category", "Noun", "Verb", "Syllable 1")
 
@@ -163,7 +164,7 @@ print(test_statistic)
 ```
 
 
-+ Task B.
+#### __Task B.__
 
 ```{r permutation_test}
 if(!exists(".Random.seed")) set.seed(NULL)
@@ -188,11 +189,11 @@ permuted %>%
 ```
 
 
-### Exercise 3: Simulating new cases like our own
+## Exercise 3: Simulating new cases like our own
 
 
 
-+ Task A.
+#### __Task A.__
 
 ```{r build_data_frame_with_rbinom}
 proportion_n_syll_1 <- stressshift::stress_shift_unamb %>%
@@ -252,7 +253,7 @@ The 2nd histogram plots the distribution obtained by measuring the differences i
 
 We can see that our observed result seems to occur arround the middle of the distribution generated from the differences in proportions of 1st stress syllable between the noun and verb population created with a binomial distribution. This corresponds to the *expected value* EX(X). Our binomial variable X represents the number of times the difference in proportion takes a value x in the interval [0:200] (X=0 if the difference in proportion z respects : 0≤z<0.005, X=1 if the difference in proportion z respects : 0.005≤z<0.01 etc...). Our observed result might therefore indicate that our original noun data and verb data invalidates the null hypothesis. The binomial distribution we made up respecting the probabilities and size of our original data has an expected value around 0.7, which would seem unlikely (if not impossible) if there truly was no difference between the two groups.
 
-+ Task B.
+#### __Task B.__
 
 
 ```{r initial_stress_shift_repli, cache=T}
@@ -278,7 +279,7 @@ stat_power <- function(table, nsamples, seuil) {
 stat_power(stress_shift_replications, 99, 0.05) %>% print
 ```
 
-+ Task C.
+#### __Task C.__
 
 Re-do this power analysis under six conditions (it would be a lot smarter to create a function to replicate the test without having these huge chunks of code which are a. likely to contain errors, b. not very human-friendly c. use lots of temporary variables instead of `%>%`, but I don't have enough time to do so)
 
@@ -435,7 +436,9 @@ The statistical power value represents represents the probability that our stati
 
 So either my definition is wrong and statistical power is not a probability, or my results for case 4 and 5 are wrong, and the test should have returned a float between 0 and 1. 
 
-# Exercise 4: Testing the independence assumption
+## Exercise 4: Testing the independence assumption
+
+#### __Task A.__
 
 ```{r, cache=T}
 # just a recap of the arguments :
@@ -476,7 +479,7 @@ permuted %>%
 
 We observe that the value is generally greater for nouns than it is for verbs (for example there is a lot more cases between 150 and 175)  . Therefore, according to both plots it seems like it might be the case that there is more dependence between the stress syllable of nouns and the word considered, than between the stress syllable of verbs and the word considered. To rephrase : in nouns there seems to be less independence between the form and the stress syllable than in verbs.
 
-+ Optional 1.
+#### __Optional 1.__
 
 `permutation_twogroups()` needed us to explicit say which value group1 and group2 could take. 
 
