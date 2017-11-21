@@ -104,7 +104,7 @@ Our resulting table therefore has fewer rows because not all rows have matching 
 + Task E.
 
 
-```{r plot_noun_verb_stress_distrib}
+```{r plot_noun_verb_stress_distrib, echo=FALSE}
 ggplot2::aes(x=Category, fill=Syllable) %>%
   ggplot2::ggplot(stressshift::stress_shift_unamb,.) +
   ggplot2::geom_bar(position="dodge", colour="black") + 
@@ -132,7 +132,7 @@ if(nrow(stress_shift_byword)==149) {
 
 + Task G.
 
-```{r plot_incomplete_table_}
+```{r plot_incomplete_table_, echo=FALSE}
 stress_shift_byword %>% 
   ggplot2::ggplot(ggplot2::aes(Noun_Percent_Syll_1, Verb_Percent_Syll_1)) +
   ggplot2::geom_point(alpha = 0.5) +
@@ -175,7 +175,7 @@ set.seed(previous_seed)
 permutation_pvalue_right(ptest_stress)
 ```
 
-```{r plotting_permutation_tests}
+```{r plotting_permutation_tests, echo=FALSE, message=FALSE}
 permuted <- tibble::as_tibble(ptest_stress["permuted"])
 original <- tibble::as_tibble(ptest_stress["observed"])
 permuted %>%
@@ -221,7 +221,7 @@ stress_shift_replications <- data.frame(
 
 ```
 
-```{r plot_data_test_statistics_with_rbinom}
+```{r plot_data_test_statistics_with_rbinom, echo=FALSE}
 permuted <- tibble::as_tibble(stress_shift_replications["Difference_in_Proportion"])
 # original ne change pas
 permuted %>%
@@ -269,7 +269,7 @@ I'm not sure why I only find identical right_pvalues in my table. There's 2 poss
 + i've missed something 
 
 I probably did something wrong when filling in the function, but I can't find where since we got it as a whole block and I haven't changed much of it. This will affect the result for the following chunk of code which is my attempt at measuring the statistical power of this test. In order to continue my analysis, I will act as if this result was normal.
-```{r stat_power}
+```{r stat_power, cache=T}
 stat_power <- function(table, nsamples, seuil) {
   pvals <- table %>% dplyr::select(Permutation_Pvalue)
   return(1 - sum(pvals > seuil)/nsamples)
@@ -285,7 +285,7 @@ Re-do this power analysis under six conditions (it would be a lot smarter to cre
 
 
 + with one tenth the number of observations in each group (651 noun and 673 verb observations)
-```{r first_condition}
+```{r first_condition, cache=T}
 Noun_N_Syll_2 <- rbinom(1000, prob=proportion_n_syll_1, size=651)
 Verb_N_Syll_2 <- rbinom(1000, prob=proportion_v_syll_1, size=673)
 
@@ -409,7 +409,7 @@ stress_shift_replications_7 <- stress_shift_replications_7 %>%
                                           n_samples=99))
 ```
 
-```{r all_stat_powers}
+```{r all_stat_powers, cache=T}
 stat_power(stress_shift_replications_2, 99, 0.05) %>% print
 stat_power(stress_shift_replications_3, 99, 0.05) %>% print
 stat_power(stress_shift_replications_4, 99, 0.05) %>% print
@@ -421,7 +421,6 @@ original_proba_n <- nb_n_observations/(nb_v_observations+nb_n_observations)
 print(original_proba_n)
 
 ```
-
 
 
 In case 1 and 2 we kept our probabilities equal to the original ones and a number of verb and nouns which seems reasonable. These are the cases when our statistical power is the best.
@@ -442,7 +441,43 @@ So either my definition is wrong and statistical power is not a probability, or 
 # just a recap of the arguments :
 # pearson_x2_stat's arg : d, var, grouping_var
 # permutation test's arg : d, var_to_permute, statistic, n_samples=9999, ...
-permutation_pearson <- permutation_test(dplyr::filter(stressshift::stress_shift_unamb, Category=="Noun"), "Syllable", pearson_x2_stat, n_samples=99, "Syllable", "Word")
-#print(permutation_pearson)
+permutation_pearson_n <- permutation_test(dplyr::filter(stressshift::stress_shift_unamb, Category=="Noun"), "Syllable", pearson_x2_stat, n_samples=99, "Syllable", "Word")
+
+permutation_pearson_v <- permutation_test(dplyr::filter(stressshift::stress_shift_unamb, Category=="Verb"), "Syllable", pearson_x2_stat, n_samples=99, "Syllable", "Word")
+
+print(permutation_pearson_n)
+print(permutation_pearson_v)
+```
+
+
+At first I was a bit confused with these tables, but I reread the questions and found this "The approximate result isn’t terribly relevant now that we can easily do permutation tests; in many cases the approximate result does not hold at all, but permutation tests will generally give accurate results.", which I interpreted as "the permuted column is the on we're going to be using to compare the two groups, since the approximate result (observed column) isn't terribly relevant".
+
+```{r, echo=FALSE, message=FALSE}
+# noun plot
+permuted <- tibble::as_tibble(permutation_pearson_n["permuted"])
+
+permuted %>%
+  # what par of the data do we want to plot
+  ggplot2::ggplot(.,ggplot2::aes(x=., y=(..count..))) +
+  # how is the histogram going to look like
+  ggplot2::geom_histogram(colour="black", fill="#FFCC66")
+
+# verb plot
+permuted <- tibble::as_tibble(permutation_pearson_v["permuted"])
+
+permuted %>%
+  # what par of the data do we want to plot
+  ggplot2::ggplot(.,ggplot2::aes(x=., y=(..count..))) +
+  # how is the histogram going to look like
+  ggplot2::geom_histogram(colour="black", fill="#FFCC66")
 
 ```
+
+
+We observe that the value is generally greater for nouns than it is for verbs (for example there is a lot more cases between 150 and 175)  . Therefore, according to both plots it seems like it might be the case that there is more dependence between the stress syllable of nouns and the word considered, than between the stress syllable of verbs and the word considered. To rephrase : in nouns there seems to be less independence between the form and the stress syllable than in verbs.
+
++ Optional 1.
+
+`permutation_twogroups()` needed us to explicit say which value group1 and group2 could take. 
+
+Here with our statistic is `pearson_x2_stat()` there is no need to list the values `groupin_var` could take, as the function dynamically computes the potential values using `unique(d[[grouping_var]]`. We only provide to the statistic function the data (which has been permuted), the name of the column on which to permute and the name of the column on which to group.
