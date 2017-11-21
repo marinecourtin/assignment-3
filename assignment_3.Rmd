@@ -248,10 +248,9 @@ permuted %>%
 
 For the 1st histogram, we looked at the proportion of 1st syllable stressed nouns and verbs. Based on these proportions, we created binomial distributions for both noun and verbs. Each of these distribution is based on 1000 observations, with each observation having a number of trials equal to the number of nouns/verbs in the original data. We then computed the difference in proportions for each of these observations and plotted the result. These results are the compared to the result observed in our original data (the black line).
 
-The 2nd histogram plots the distribution obtained by measuring the differences in proportion of nouns vs verbs with 1st syllable stress, obtained by creating 99 permutation tests. These results obtained by permutation (i.e a test which creates two groups of observations which share the same source of variability, which represents the hypothesis of same distribution) are compared to the observed result (the black line). Since this distribution is supposed to represent a null hypothesis case, with no difference between the 2 groups, the distribution is centered around 0 and approximately symmetric around this center.
+The 2nd histogram plots the distribution obtained by measuring the differences in proportion of nouns vs verbs with 1st syllable stress, obtained by creating 99 permutation tests. These results obtained by permutation (i.e a test which creates two groups of observations which share the same source of variability, which represents the hypothesis of same distribution) are compared to the observed result (the black line). Since this distribution is supposed to represent a null hypothesis case, with no difference between the 2 groups, the binomial distribution is centered around 0 and approximately symmetric around this center.
 
-We can see that our observed result seems to occur arround the middle of the distribution generated from the differences in proportions of 1st stress syllable between the noun and verb population created with a binomial distribution. This corresponds to the *expected value* EX(X). Our binomial variable X represents the number of times the difference in proportion takes a value x in the interval [0:200] (X=0 if the difference in proportion z respects : 0≤z<0.005, X=1 if the difference in proportion z respects : 0.005≤z<0.01 etc...). Our observed result might therefore indicate that our original noun data and verb data respected binomial distributions (with the number of 1st syllable stress for each population a consequence of this distribution, and our difference in proportions a difference between the expected values for noun and verbs)
-
+We can see that our observed result seems to occur arround the middle of the distribution generated from the differences in proportions of 1st stress syllable between the noun and verb population created with a binomial distribution. This corresponds to the *expected value* EX(X). Our binomial variable X represents the number of times the difference in proportion takes a value x in the interval [0:200] (X=0 if the difference in proportion z respects : 0≤z<0.005, X=1 if the difference in proportion z respects : 0.005≤z<0.01 etc...). Our observed result might therefore indicate that our original noun data and verb data invalidates the null hypothesis. The binomial distribution we made up respecting the probabilities and size of our original data has an expected value around 0.7, which would seem unlikely (if not impossible) if there truly was no difference between the two groups.
 
 + Task B.
 
@@ -265,6 +264,19 @@ stress_shift_replications <- stress_shift_replications %>%
                                           n_samples=99))
 ```
 
+I'm not sure why I only find identical right_pvalues in my table. There's 2 possibilities :
++ it's a bug
++ i've missed something 
+
+I probably did something wrong when filling in the function, but I can't find where since we got it as a whole block and I haven't changed much of it. This will affect the result for the following chunk of code which is my attempt at measuring the statistical power of this test
+```{r stat_power}
+stat_power <- function(table, nsamples, seuil) {
+  pvals <- table %>% dplyr::select(Permutation_Pvalue)
+  return(1 - sum(pvals > seuil)/nsamples)
+}
+
+stat_power(stress_shift_replications, 99, 0.05) %>% print
+```
 
 + Task C.
 
@@ -273,7 +285,7 @@ Re-do this power analysis under six conditions (it would be a lot smarter to cre
 
 
 + with one tenth the number of observations in each group (651 noun and 673 verb observations)
-```{r first_condition, cache=T}
+```{r first_condition}
 Noun_N_Syll_2 <- rbinom(1000, prob=proportion_n_syll_1, size=651)
 Verb_N_Syll_2 <- rbinom(1000, prob=proportion_v_syll_1, size=673)
 
@@ -397,14 +409,26 @@ stress_shift_replications_7 <- stress_shift_replications_7 %>%
                                           n_samples=99))
 ```
 
-# TO CHANGE
+```{r all_stat_powers}
+stat_power(stress_shift_replications_2, 99, 0.05) %>% print
+stat_power(stress_shift_replications_3, 99, 0.05) %>% print
+stat_power(stress_shift_replications_4, 99, 0.05) %>% print
+stat_power(stress_shift_replications_5, 99, 0.05) %>% print
+stat_power(stress_shift_replications_6, 99, 0.05) %>% print
+stat_power(stress_shift_replications_7, 99, 0.05) %>% print
 
-```{r, eval=FALSE, evaluate=F, include=FALSE}
-#Give the estimated statistical power at the 0.05 level under each of these conditions. Discuss the results.
+original_proba_n <- nb_n_observations/(nb_v_observations+nb_n_observations)
+print(original_proba_n)
 
-#Estimated power (1 - Type 2 error rate) for a test at the 0.05 significance level:
-1 - sum(pvals > 0.05)/N_EXPERIMENTS
 ```
+
+What does this statistical power value represents : it represents the probability that our statistic test rejects the null hypothesis (hypothesis of the two groups being the same) when an alternative hypothesis (the two groups aren't the same) is true. If our pvalues were'nt in fact a bug we have a statistical power of 1 (it's probably not actually 1 but a number very close to 1) then our statistical test is really good as it manages to reject the null hypothesis in a very large majority of cases (if not all of them).
+
+In case 1 and 2 we kept our probabilities equal to the original ones and a number of verb and nouns which seems reasonable. These are the cases when our statistical power is the best.
+
+In case 3, we kept the same probabilities, but lowered our number of verbs and nouns a lot which diminished the statistical power of our test. In case 6 we did the opposite, we kept the original number of verbs and nouns, but changed the probabilities of syllable_1 stress (for nouns the original was around 0.49, and therefore around 0.51 for verbs, the change widened a bit the already existing gap between the two classes in terms of probability). These changes lowers the statistical power, but it was still quite good.
+
+Cases 4 and 5 are the worst. 4 has very little data and one classe is a lot more represented than the other (verbs only has 3 instances which is clearly not enough). 5 has more data, but the probability of verbs and nouns have been reversed. Contrary to 6 where the probabilities where also changed, in this case nouns were given a higher probability than verbs even though the opposite phenomenon occured in our original data. Both of these cases give negative results.
 
 # Exercise 4: Testing the independence assumption
 

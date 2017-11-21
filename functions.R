@@ -150,8 +150,11 @@ v_pdp_pvalue_right <- function(k1_vec, k2_vec, n1, n2, n_samples=9999) {
     # [YOUR CODE HERE: APPLY permtest_difference_in_props WITH THE i'TH VALUES
     #  OF k1_vec AND OF k2_vec AS THE FIRST TWO ARGUMENTS, AND STORE THE
     #  RESULT AS THE i'TH VALUE OF result]
-    result[i] <- permtest_difference_in_props(k1_vec[i],k2_vec[i],n1,n2,n_samples) %>%
-      permutation_pvalue_right()
+    
+    # when I only result[i] <- permtest_difference_in_props(k1_vec[i],k2_vec[i],n1,n2,n_samples) there was a problem in terms of size
+    # my classmate Manying pointed out that I had never called the pvalue computing function so I added it here
+    # I'm not sure that's the right place to put it ? (I tried through trial and error But it did make my error message disappear so that's always something...
+    result[i] <- permtest_difference_in_props(k1_vec[i],k2_vec[i],n1,n2,n_samples) %>% permutation_pvalue_right
   }
   return(result)
 }
