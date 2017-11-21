@@ -268,15 +268,12 @@ stress_shift_replications <- stress_shift_replications %>%
 
 + Task C.
 
-Re-do this power analysis under six conditions:
+Re-do this power analysis under six conditions (it would be a lot smarter to create a function to replicate the test without having these huge chunks of code which are a. likely to contain errors, b. not very human-friendly c. use lots of temporary variables instead of `%>%`, but I don't have enough time to do so)
 
-# TO ADD :
-
-Vérifier qu'il faut pas recréer les jeu de données à chaque fois pour spécifier le nombre d'observations de chaque groupe dedans.
 
 
 + with one tenth the number of observations in each group (651 noun and 673 verb observations)
-```{r first_condition}
+```{r first_condition, cache=T}
 Noun_N_Syll_2 <- rbinom(1000, prob=proportion_n_syll_1, size=651)
 Verb_N_Syll_2 <- rbinom(1000, prob=proportion_v_syll_1, size=673)
 
@@ -295,9 +292,8 @@ stress_shift_replications_2 <- stress_shift_replications_2 %>%
                                           n_samples=99))
 ```
 
-+ with the same overall number of observations, but with one tenth as many observations for verbs as for nouns (12034
-noun and 1204 verb observations)
-```{r second_condition}
++ with the same overall number of observations, but with one tenth as many observations for verbs as for nouns (12034 noun and 1204 verb observations)
+```{r second_condition, cache=T}
 Noun_N_Syll_3 <- rbinom(1000, prob=proportion_n_syll_1, size=12034)
 Verb_N_Syll_3 <- rbinom(1000, prob=proportion_v_syll_1, size=1204)
 
@@ -317,7 +313,7 @@ stress_shift_replications_3 <- stress_shift_replications_3 %>%
 ```
 
 + with a total of only 33 observations (16 noun observations and 17 verb observations)
-```{r third_condition}
+```{r third_condition, cache=T}
 Noun_N_Syll_4 <- rbinom(1000, prob=proportion_n_syll_1, size=16)
 Verb_N_Syll_4 <- rbinom(1000, prob=proportion_v_syll_1, size=17)
 
@@ -337,9 +333,8 @@ stress_shift_replications_4 <- stress_shift_replications_4 %>%
 ```
 
 
-+ with a total of 33 observations, but with one tenth as many observations for verbs as for nouns (30 noun observations
-and 3 verb observations)
-```{r fourth_condition}
++ with a total of 33 observations, but with one tenth as many observations for verbs as for nouns (30 noun observations and 3 verb observations)
+```{r fourth_condition, cache=T}
 Noun_N_Syll_5 <- rbinom(1000, prob=proportion_n_syll_1, size=30)
 Verb_N_Syll_5 <- rbinom(1000, prob=proportion_v_syll_1, size=3)
 
@@ -359,7 +354,7 @@ stress_shift_replications_5 <- stress_shift_replications_5 %>%
 ```
 
 + with one tenth the number of observations, and a probability of “Syllable 1” of 0.52 for nouns and 0.48 for verbs
-```{r fifth_condition}
+```{r fifth_condition, cache=T}
 
 # on recréé des données avec les proba différentes
 Noun_N_Syll_6 <- rbinom(1000, prob=0.52, size=651)
@@ -383,12 +378,23 @@ stress_shift_replications_6 <- stress_shift_replications_6 %>%
 + with the same original numbers of observations, and new underlying distributions in the two groups: a probability
 of “Syllable 1” of 0.52 for nouns and 0.48 for verbs
 
-```{r sixth_condition, eval=FALSE, evaluate=F, include=FALSE}
+```{r sixth_condition, cache=T}
 Noun_N_Syll_7 <- rbinom(1000, prob=0.52, size=nb_n_observations)
 Verb_N_Syll_7 <- rbinom(1000, prob=0.48, size=nb_v_observations)
 
-stress_shift_replications_6 <- stress_shift_replications_2 %>%
-  dplyr::mutate(Permutation_Pvalue=v_pdp_pvalue_right(Noun_N_Syll_1_2, Verb_N_Syll_1_2,6506,6732,n_samples=99))
+stress_shift_replications_7 <- data.frame(
+  "Noun_Percent_Syll_1" = Noun_N_Syll_7,
+  "Verb_Percent_Syll_1" = Verb_N_Syll_7,
+  "Replication" = paste0("R", sprintf("%04d", 1:1000)),
+  "Difference_in_Proportion" = Noun_N_Syll_7/nb_n_observations - Verb_N_Syll_7/nb_v_observations
+)
+
+stress_shift_replications_7 <- stress_shift_replications_7 %>%
+  dplyr::mutate(
+    Permutation_Pvalue=v_pdp_pvalue_right(Noun_N_Syll_7, Verb_N_Syll_7,
+                                          nb_n_observations,
+                                          nb_v_observations,
+                                          n_samples=99))
 ```
 
 # TO CHANGE
@@ -402,11 +408,11 @@ stress_shift_replications_6 <- stress_shift_replications_2 %>%
 
 # Exercise 4: Testing the independence assumption
 
-```{r}
+```{r, cache=T}
+# just a recap of the arguments :
 # pearson_x2_stat's arg : d, var, grouping_var
 # permutation test's arg : d, var_to_permute, statistic, n_samples=9999, ...
-## for each of the values that "Syllable" can take, compare the proportions for a particular group
 permutation_pearson <- permutation_test(dplyr::filter(stressshift::stress_shift_unamb, Category=="Noun"), "Syllable", pearson_x2_stat, n_samples=99, "Syllable", "Word")
-print(permutation_pearson)
+#print(permutation_pearson)
 
 ```
